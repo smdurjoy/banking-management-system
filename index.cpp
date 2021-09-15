@@ -7,18 +7,23 @@ using namespace std;
 void admin();
 void super_admin();
 void user();
-void super_admin_login();
-void admin_login();
-void user_login();
-void registration(string text, string fileName, void (*login)());
 void super_admin_panel(string username);
 void admin_panel(string username);
 void user_panel(string username);
 
+class loginRegister {
+    public:
+    string username, password, type;
+
+    int login(string type, string fileName);
+    int registration(string t, string fileName);
+    void panel();
+};
+
 int main() {
     int choice;
     system("cls");
-    cout<<"*********************Welcome to our Banking Managment System*************************\n";
+    cout<<"********************* Welcome to our Banking Managment System *************************\n";
     cout<<"\nDashboard \n\n";
     for(int i=0; i<=84; i++) cout<<"-";
     cout<<"\n\n\t\t\t1. Super Admin \n";
@@ -45,22 +50,75 @@ int main() {
     return 0;
 }
 
+int loginRegister :: registration(string type, string fileName) {
+    system("cls");
+    cout<<"******************************** "<< type << " " << " Registration ************************************\n";
+    cout<<"\nChoose a username and password combination \n\n";
+    cout<<"\n\t\tEnter username: ";
+    cin>>username;
+    cout<<"\t\tEnter password: ";
+    cin>>password;
+
+    ofstream reg(fileName, ios::app);
+    reg<<username<<" "<<password<<endl;
+    reg.close();
+    return 1;
+}
+
+int loginRegister :: login(string type, string fileName) {
+    string uname, pass;
+    int is_exists=0;
+    system("cls");
+    cout<<"********************* "<< type << " login *************************\n\n";
+    cout<<"Enter username: ";
+    cin>>username;
+    cout<<"Enter password: ";
+    cin>>password;
+
+    ifstream input(fileName);
+
+    while (input>>uname>>pass) {
+        if(uname == username && pass == password) {
+            is_exists = 1;
+        }
+    }
+    input.close();
+
+    if (is_exists) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 void super_admin() {
     int choice;
     system("cls");
-    cout<<"*********************************Super Admin Panel*************************************\n";
+    cout<<"********************************* Super Admin Panel *************************************\n";
     cout<<"\nOptions \n\n";
-    for(int i=0; i<=84; i++) cout<<"-";
+    for(int i=0; i<=86; i++) cout<<"-";
     cout<<"\n\n\t\t\t1. Login \n";
     cout<<"\t\t\t2. Go back \n";
     cout<<"\t\t\t3. Choose an option to continue: ";
     cin>>choice;
 
+    loginRegister obj;
     switch (choice) {
-        case 1:
-            super_admin_login();
+        case 1: {
+            int result = obj.login("Super Admin", "super_admin.txt");
+            if (result) {
+                string username = obj.username;
+                super_admin_panel(username);
+            } else {
+                cout<<"Invalid credentials. Try again !\n";
+                cout<<"Press enter to continue\n";
+                cin.get();
+                cin.get();
+                obj.login("Super Admin", "super_admin.txt");
+            }
             break;
-        case 2:
+        }
+        case 2: 
             main();
             break;
         default:
@@ -72,21 +130,44 @@ void super_admin() {
 void admin() {
     int choice;
     system("cls");
-    cout<<"*********************************Admin Panel*************************************\n";
+    cout<<"********************************* Admin Panel *************************************\n";
     cout<<"\nOptions \n\n";
     for(int i=0; i<=84; i++) cout<<"-";
     cout<<"\n\n\t\t\t1. Login \n";
-    cout<<"\t\t\t3. Go back \n";
-    cout<<"\t\t\t4. Choose an option to continue: ";
+    cout<<"\t\t\t2. Go back \n";
+    cout<<"\t\t\t3. Choose an option to continue: ";
     cin>>choice;
 
+    loginRegister obj;
     switch (choice) {
-        case 1:
-            admin_login();
+        case 1: {
+            int result = obj.login("Admin", "admin.txt");
+            if (result) {
+                string username = obj.username;
+                admin_panel(username);
+            } else {
+                cout<<"Invalid credentials. Try again !\n";
+                cout<<"Press enter to continue\n";
+                cin.get();
+                cin.get();
+                obj.login("Admin", "admin.txt");
+            }
             break;
-        case 3:
-            main();
+        }
+        case 2: {
+            int is_registered = obj.registration("Admin", "admin.txt");
+            if (is_registered) {
+                cout << "Registration Success";
+                cout<<"Press enter to login\n";
+                cin.get();
+                cin.get();
+                obj.login("Admin", "admin.txt");
+            } else {
+                cout<<"Something went wrong ! Try again.\n";
+                obj.registration("Admin", "admin.txt");
+            }
             break;
+        }
         default:
             cout<<"Invalid choice";
             admin();
@@ -105,13 +186,36 @@ void user() {
     cout<<"\t\t\t4. Choose an option to continue: ";
     cin>>choice;
 
+    loginRegister obj;
     switch (choice) {
-        case 1:
-            user_login();
+        case 1: {
+            int result = obj.login("User", "users.txt");
+            if (result) {
+                string username = obj.username;
+                user_panel(username);
+            } else {
+                cout<<"Invalid credentials. Try again !\n";
+                cout<<"Press enter to continue\n";
+                cin.get();
+                cin.get();
+                obj.login("User", "users.txt");
+            }
             break;
-        case 2:
-            registration("User", "users.txt", user_login);
+        }
+        case 2: {
+            int is_registered = obj.registration("User", "user.txt");
+            if (is_registered) {
+                cout << "Registration Success";
+                cout<<"Press enter to login\n";
+                cin.get();
+                cin.get();
+                obj.login("User", "user.txt");
+            } else {
+                cout<<"Something went wrong ! Try again.\n";
+                obj.registration("User", "user.txt");
+            }
             break;
+        }
         case 3:
             main();
             break;
@@ -121,125 +225,13 @@ void user() {
     }
 }
 
-void super_admin_login() {
-    string username, password, uname, pass;
-    int is_exists=0;
-    system("cls");
-    cout<<"*********************Super Admin login*************************\n\n";
-    cout<<"Enter username: ";
-    cin>>username;
-    cout<<"Enter password: ";
-    cin>>password;
-
-    ifstream input("super_admin.txt");
-
-    while (input>>uname>>pass) {
-        if(uname == username && pass == password) {
-            is_exists = 1;
-        }
-    }
-    input.close();
-
-    if (is_exists) {
-        super_admin_panel(username);
-    } else {
-        cout<<"Invalid credentials. Try again !\n";
-        cout<<"Press enter to continue\n";
-        cin.get();
-        cin.get();
-        super_admin_login();
-    }
-}
-
-void admin_login() {
-    string username, password, uname, pass;
-    int is_exists=0;
-    system("cls");
-    cout<<"*********************Admin login*************************\n\n";
-    cout<<"Enter username: ";
-    cin>>username;
-    cout<<"Enter password: ";
-    cin>>password;
-
-    ifstream input("admin.txt");
-
-    while (input>>uname>>pass) {
-        if(uname == username && pass == password) {
-            is_exists = 1;
-        }
-    }
-    input.close();
-
-    if (is_exists) {
-        admin_panel(username);
-    } else {
-        cout<<"Invalid credentials. Try again !\n";
-        cout<<"Press enter to continue\n";
-        cin.get();
-        cin.get();
-        admin_login();
-    }
-}
-
-void user_login() {
-    string username, password, uname, pass;
-    int is_exists=0;
-    system("cls");
-    cout<<"*********************User login*************************\n\n";
-    cout<<"Enter username: ";
-    cin>>username;
-    cout<<"Enter password: ";
-    cin>>password;
-
-    ifstream input("users.txt");
-
-    while (input>>uname>>pass) {
-        if(uname == username && pass == password) {
-            is_exists = 1;
-        }
-    }
-    input.close();
-
-    if (is_exists) {
-        user_panel(username);
-    } else {
-        cout<<"Invalid credentials. Try again !\n";
-        cout<<"Press enter to continue\n";
-        cin.get();
-        cin.get();
-        user_login();
-    }
-}
-
-void registration(string text, string fileName, void (*login)()) {
-    string username, password;
-    system("cls");
-    cout<<"********************************"<< text << " " << "Registration************************************\n";
-    cout<<"\nChoose a username and password combination \n\n";
-    cout<<"\n\t\tEnter username: ";
-    cin>>username;
-    cout<<"\t\tEnter password: ";
-    cin>>password;
-
-    ofstream reg(fileName, ios::app);
-    reg<<username<<" "<<password<<endl;
-    reg.close();
-    system("cls");
-    cout<<"********************************"<< text << " " << "Panel************************************\n";
-    cout<<"\nRegistration Successfull\n";
-    cout<<"Press enter to login";
-    cin.get();
-    cin.get();
-    (*login)();
-}
-
 void admin_panel(string username) {
     int choice;
     system("cls");
-    cout<<"*********************Admin Panel*************************\n\n";
+    cout<<"********************* Admin Panel *************************\n\n";
     cout << "Good evening " << username << ".\n\n";
     for(int i=0; i<=56; i++) cout<<"~";
-    cout << "\n\nOptions-> \n";
+    cout << "\n\nOptions-> \n\n";
     cout<<"\t1. Account holders list \n";
     cout<<"\t2. Find account \n";
     cout<<"\t3. Close or delete account \n";
@@ -272,7 +264,7 @@ void user_panel(string username) {
     cout<<"*********************User Panel*************************\n\n";
     cout << "Good evening " << username << ".\n\n";
     for(int i=0; i<=56; i++) cout<<"~";
-    cout << "\n\nOptions-> \n";
+    cout << "\n\nOptions-> \n\n";
     cout<<"\t1. Deposite Money \n";
     cout<<"\t2. Withdraw Money \n";
     cout<<"\t3. Transfer Money \n";
@@ -330,55 +322,39 @@ void super_admin_panel(string username) {
     cout<<"\t6. Choose an option to continue: ";
     cin>>choice;
 
+    loginRegister obj;
     switch (choice) {
-    case 1:
-        registration("Admin", "admin.txt", admin_login);
+    case 1: {
+        int is_registered = obj.registration("Admin", "admin.txt");
+        if (is_registered) {
+            cout << "Registration Success";
+            cout<<"Press enter to login\n";
+            cin.get();
+            cin.get();
+            obj.login("Admin", "admin.txt");
+        } else {
+            cout<<"Something went wrong ! Try again.\n";
+            obj.registration("Admin", "admin.txt");
+        }
         break;
-    case 2:
+    }
+    case 2: {   
         cout<<"Coming soon :)";
         break;
-    case 3:
+    }
+    case 3: {
         cout<<"Coming soon :)";
         break;
-    case 4:
+    }
+    case 4: {
         cout<<"Coming soon :)";
         break;
+    }
     case 5:
         main();
         break;
     default:
         cout<<"Invalid choice";
-        admin_panel(username);
+        super_admin_panel(username);
     }
 }
-
-// void login(string fileName, void (*panel)(string));
-// void login(string fileName, void (*panel)(string)) {
-//     string username, password, uname, pass;
-//     int is_exists=0;
-//     system("cls");
-//     cout<<"*********************Admin login*************************\n\n";
-//     cout<<"Enter username: ";
-//     cin>>username;
-//     cout<<"Enter password: ";
-//     cin>>password;
-
-//     ifstream input(fileName);
-
-//     while (input>>uname>>pass) {
-//         if(uname == username && pass == password) {
-//             is_exists = 1;
-//         }
-//     }
-//     input.close();
-
-//     if (is_exists) {
-//         (*panel)(username);
-//     } else {
-//         cout<<"Invalid credentials. Try again !\n";
-//         cout<<"Press enter to continue\n";
-//         cin.get();
-//         cin.get();
-//         login(fileName, panel);
-//     }
-// }
